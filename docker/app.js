@@ -2,7 +2,6 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const app = express();
-const fetch = require('node-fetch');
 
 const cors = require('cors');
 app.use(cors());
@@ -44,6 +43,7 @@ app.post(`${api_root}/update`, async (req, res) => {
             const webhookUrl = process.env.WEBHOOK_URL;
             if (webhookUrl) {
                 try {
+                    const fetch = require('node-fetch');
                     await fetch(webhookUrl, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
