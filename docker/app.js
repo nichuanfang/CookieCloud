@@ -24,7 +24,7 @@ app.all(`${api_root}/`, (req, res) => {
 });
 
 // ---------------- /update ----------------
-app.post(`${api_root}/update`, (req, res) => {
+app.post(`${api_root}/update`, async (req, res) => {
     const {encrypted, uuid} = req.body;
     if (!encrypted || !uuid) {
         res.status(400).send('Bad Request');
@@ -37,31 +37,32 @@ app.post(`${api_root}/update`, (req, res) => {
     try {
         fs.writeFileSync(file_path, content);
         const verify = fs.readFileSync(file_path, 'utf8');
-        if (verify === content) {
-            // 先返回响应
-            res.json({action: "done"});
 
-            // 异步推送 webhook
+        if (verify === content) {
+            // 同步推送 webhook
             const webhookUrl = process.env.WEBHOOK_URL;
             if (webhookUrl) {
-                (async () => {
-                    try {
-                        await fetch(webhookUrl, {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({
-                                event: 'update_success',
-                                uuid,
-                                timestamp: new Date().toISOString()
-                            })
-                        });
-                        console.log(`Webhook pushed to ${webhookUrl}`);
-                    } catch (err) {
-                        console.error(`Webhook push failed: ${err.message}`);
-                    }
-                })();
+                try {
+                    const fetch = require('node-fetch');
+                    await fetch(webhookUrl, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            event: 'update_success',
+                            uuid,
+                            timestamp: new Date().toISOString()
+                        })
+                    });
+                    console.log(`Webhook pushed to ${webhookUrl}`);
+                } catch (err) {
+                    console.error(`Webhook push failed: ${err.message}`);
+                    res.status(500).send('Webhook push failed');
+                    return;
+                }
             }
 
+            // 返回响应
+            res.json({action: "done"});
         } else {
             res.json({action: "error"});
         }
