@@ -43,7 +43,6 @@ app.post(`${api_root}/update`, async (req, res) => {
             const webhookUrl = process.env.WEBHOOK_URL;
             if (webhookUrl) {
                 try {
-                    const fetch = require('node-fetch');
                     await fetch(webhookUrl, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
