@@ -4,3 +4,5 @@ data/
 logs/
 ref/
 .DS_Store
+.aider*
+.idea
